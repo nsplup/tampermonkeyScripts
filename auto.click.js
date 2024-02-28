@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         auto.click
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  自动点击
 // @author       Luke Pan
 // @match        */*
@@ -14,7 +14,7 @@
 
   const DEBUG_MODE = false
   const PATTERN = {
-    'dlsite.com': [
+    '*dlsite.com/*': [
       {
         query: '.lang_select_item a', /** 语言选择：日语 */
         pre: () => !location.search.includes('locale') /** 防止循环点击 */
@@ -23,7 +23,7 @@
         query: '.btn_yes a', /** 成人确认 */
       },
     ],
-    'javdb.com': [
+    '*javdb.com/*': [
       {
         query: '[href*="/over18"]', /** 成人确认 */
       }
@@ -32,8 +32,8 @@
 
   const PATTERN_ENTRIES = Object.entries(PATTERN)
   for (let i = 0, len = PATTERN_ENTRIES.length; i < len; i++) {
-    let [site, rules] = PATTERN_ENTRIES[i]
-    if (location.origin.includes(site)) {
+    let [match, rules] = PATTERN_ENTRIES[i]
+    if (isMatchingUrl(match)) {
       rules = rules.reduce((prev, current) => {
         const { query } = current
         const el = $(query)
@@ -64,5 +64,20 @@
       })
       break
     }
+  }
+
+  function isMatchingUrl(inputString) {
+    // 获取当前页面地址
+    const currentUrl = window.location.href
+
+    // 将传入的字符串转换为正则表达式
+    const regexString = inputString
+      .replace(/\./g, '\\.')
+      .replace(/\*/g, '.*') // 将通配符 * 转换为正则表达式中的 .*
+
+    const regex = new RegExp(`^${ regexString }$`)
+
+    // 使用 match() 方法进行匹配
+    return currentUrl.match(regex) !== null
   }
 })();
