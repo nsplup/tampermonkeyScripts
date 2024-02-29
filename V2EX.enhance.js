@@ -16,7 +16,7 @@
   const AUTO_DAILY_BONUS = true /** 自动签到开关 */
   const MAX_DEPTH = 4 /** 回复预览最大深度 */
   const MAX_HEIGHT = 200 /** 超过最大高度时折叠 */
-  const MAX_THREAD_HEIGHT = 400 /** 最大高度宽容度 */
+  const MAX_THREAD_HEIGHT = 400 /** 单层回复最大高度 */
   const COLLAPSE_DEFAULT = true /** 当值为 true 时，默认折叠 */
 
   const $ = document.querySelector.bind(document)
