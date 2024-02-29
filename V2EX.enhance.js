@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.13
+// @version      0.7.14
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -16,7 +16,7 @@
   const AUTO_DAILY_BONUS = true /** 自动签到开关 */
   const MAX_DEPTH = 4 /** 回复预览最大深度 */
   const MAX_HEIGHT = 200 /** 超过最大高度时折叠 */
-  const COLLAPSE_TOLERANCE = 20 /** 最大高度宽容度 */
+  const MAX_THREAD_HEIGHT = 400 /** 最大高度宽容度 */
   const COLLAPSE_DEFAULT = true /** 当值为 true 时，默认折叠 */
 
   const $ = document.querySelector.bind(document)
@@ -120,6 +120,7 @@
     const buttonName = 'v2exe_review_button'
     const blockContainerName = 'v2exe_block_container'
     const blockMainName = 'v2exe_block_main'
+    const maskName = 'v2exe_mask'
     const CSSText = `
       .${ containerName } {
         position: relative;
@@ -166,13 +167,42 @@
         display: inline-block;
       }
       [collapsed=true] > .${ buttonName } > [toggle="open"],
-      [collapsed=false] > .${ buttonName } > [toggle="close"] {
+      [collapsed=false] > .${ buttonName } > [toggle="close"],
+      [collapsed=false] > .${ maskName } > [toggle="open"],
+      [collapsed=true] > .${ maskName } > [toggle="close"] {
         display: inline-block;
       }
       [collapsed=false] > .${ buttonName } > [toggle="open"],
       [collapsed=true] > .${ buttonName } > [toggle="close"],
+      [collapsed=false] > .${ maskName } > [toggle="open"],
+      [collapsed=true] > .${ maskName } > [toggle="close"],
       [collapsed=true] > .${ contentName } {
         display: none;
+      }
+      .cell[collapsed] {
+        position: relative;
+      }
+      .cell[collapsed=true] {
+        height: ${ MAX_THREAD_HEIGHT }px;
+        overflow: hidden;
+      }
+      .${ maskName } {
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(transparent 15%, white, white);
+        cursor: pointer;
+      }
+      .cell[collapsed=false] .${ maskName } {
+        position: sticky;
+      }
+      .${ maskName } [toggle] {
+        position: absolute;
+        bottom: 5px;
+        color: rgb(128, 128, 128);
       }
       .${ blockMainName } {
         position: absolute;
@@ -350,7 +380,7 @@
           const anchor = searchP !== null ?
             `?p=${ page }#${ id }` :
             `#${ id }`
-          const handleClick = `(function (t) { const p = t.parentNode, v = p.getAttribute('collapsed'); p.setAttribute('collapsed', v === 'true' ? 'false' : 'true') })(this)`
+          const handleCollapse = `(function (t) { const p = t.parentNode, v = p.getAttribute('collapsed'); p.setAttribute('collapsed', v === 'true' ? 'false' : 'true') })(this)`
           review = `
           <div style="width: 100%; height: 5px"></div>
           <div class="${ containerName }">
@@ -361,7 +391,7 @@
               isMaxDepth ?
               '' :
               `
-              <span class="${ buttonName }" onclick="${ handleClick }">
+              <span class="${ buttonName }" onclick="${ handleCollapse }">
                 <span toggle="open">展开</span><span toggle="close">收起</span>
               </span>
               <div class="${ contentName }">${ newContent }</div>
@@ -422,23 +452,32 @@
       $$(`.${ contentName }`)
         .reverse() /** 计算高度时先里后外 */
         .forEach(el => {
-          if (el.offsetHeight >= (MAX_HEIGHT + COLLAPSE_TOLERANCE)) {
+          const lineHeight = parseInt(window.getComputedStyle(el).lineHeight.slice(0, -2))
+          const MAX_HEIGHT_WITH_TOLERANCE = MAX_HEIGHT + lineHeight
+          if (el.offsetHeight >= MAX_HEIGHT_WITH_TOLERANCE) {
             el.parentNode.setAttribute('collapsed', COLLAPSE_DEFAULT)
           }
         })
       /** 当合计高超过阈值时强制折叠所有回复预览 */
-      $$(contentClassName)
-        .forEach(content => {
-          const rootContainers = $$(`${ contentClassName } > .${ containerName }`, content)
-            .filter(root => !root.hasAttribute('exceed'))
-          const totalHeight = rootContainers.reduce((prev, root) => {
-            const rContent = $$(`.${ contentName }`, root)[0]
-            return prev + rContent.offsetHeight
-          }, 0)
-          if (totalHeight > (MAX_HEIGHT + (20 * rootContainers.length))) {
-            rootContainers.forEach(root => root.setAttribute('collapsed', true))
-          }
-        })
+      $$('[id*="r_"]').forEach(root => {
+        const content = $$(contentClassName, root)[0]
+        const height = content.offsetHeight
+        if (height > MAX_THREAD_HEIGHT) {
+          const mask = document.createElement('div')
+          mask.className = maskName
+          mask.innerHTML = `<span toggle="open">展开</span><span toggle="close">收起</span>`
+          mask.addEventListener('click', () => {
+            if (root.getAttribute('collapsed') === 'false') {
+              if (root.getClientRects()[0].top < 0) { root.scrollIntoView() }
+              root.setAttribute('collapsed', 'true')
+            } else {
+              root.setAttribute('collapsed', 'false')
+            }
+          })
+          root.appendChild(mask)
+          root.setAttribute('collapsed', 'true')
+        }
+      })
       /** 为主题页添加屏蔽入口 */
       $$('.avatar')
         .slice(2)
