@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.12
+// @version      0.7.13
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -10,6 +10,7 @@
 
 (function() {
   'use strict'
+  const DEBUG_MODE = false
 
   /** 用户配置 */
   const AUTO_DAILY_BONUS = true /** 自动签到开关 */
@@ -107,8 +108,8 @@
     const topicClassName = '.topic_content'
     const getThread = parent => parent.querySelector('.no').innerText
     const replyRegExp = [
-      /\@<a\shref="\/member\/(\S+)">\1<\/a>\s((#\d+)|(\d+#))?/g,
-      /(\s|^)\@([^\s\<]+)\s((#\d+)|(\d+#))?/g,
+      /\@<a\shref="\/member\/(\S+)">\1<\/a>((\s#\d+)|(\s\d+#))?/g,
+      /(\s|^)\@([^\s\<]+)((\s#\d+)|(\s\d+#))?/g,
     ]
     /** 样式注入 */
     const style = document.createElement('style')
@@ -282,6 +283,9 @@
         }
         const cThreadNum = parseInt(cThread)
         const rThreadNum = parseReplyNumber(replyNumber)
+        DEBUG_MODE && console.table({
+          cThread, target, name, replyNumber
+        })
         let replyData = null
         let contentsEntries = Object.entries(contents)
           .filter(([key, val]) => (val.userName === name) && (parseInt(val.thread) < cThreadNum))
@@ -409,6 +413,7 @@
         res()
       }
     }).then(() => {
+      DEBUG_MODE && console.log(contents)
       $$(contentClassName)
         .forEach(content => {
           content.innerHTML = replaceIMGLink(handleReplace(getThread(content.parentNode)))
