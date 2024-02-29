@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.11
+// @version      0.7.12
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -107,8 +107,8 @@
     const topicClassName = '.topic_content'
     const getThread = parent => parent.querySelector('.no').innerText
     const replyRegExp = [
-      /\@<a\shref="\/member\/(\S+)">\1<\/a>(\s#(\d+))?/g,
-      /(\s|^)\@([^\s\<]+)(\s#(\d+))?/g,
+      /\@<a\shref="\/member\/(\S+)">\1<\/a>\s((#\d+)|(\d+#))?/g,
+      /(\s|^)\@([^\s\<]+)\s((#\d+)|(\d+#))?/g,
     ]
     /** 样式注入 */
     const style = document.createElement('style')
@@ -237,8 +237,7 @@
     style.innerHTML = CSSText
     document.head.appendChild(style)
 
-    const pageInput = $('.page_input')
-    const max = pageInput ? parseInt(pageInput.max) : null
+    const searchP = getSearchP()
     const contents = {}
     const extractData = (fragment, page = 1) => {
       /** 整理回复数据 */
@@ -276,21 +275,21 @@
       const matched = replyRegExp.reduce((prev, current) => prev.concat(Array.from(innerHTML.matchAll(current))), [])
       return matched.reduce((prev, current) => {
         let target, name, replyNumber, ignore, ignore2
-        if (current[1].trim().length === 0) {
+        if (current[1].trim().length === 0) { /** 判断是哪个正则的匹配值 */
           [target, ignore, name, ignore2, replyNumber] = current
         } else {
           [target, name, ignore, replyNumber] = current
         }
         const cThreadNum = parseInt(cThread)
-        const rThreadNum = parseInt(replyNumber)
+        const rThreadNum = parseReplyNumber(replyNumber)
         let replyData = null
         let contentsEntries = Object.entries(contents)
           .filter(([key, val]) => (val.userName === name) && (parseInt(val.thread) < cThreadNum))
 
         const less = [], more = []
         /** 当楼层号存在时查找楼层号 */
-        if (replyNumber && (rThreadNum < cThreadNum)) {
-          const newData = contents[replyNumber]
+        if (requiredStr(replyNumber) && (rThreadNum < cThreadNum)) {
+          const newData = contents[rThreadNum]
 
           if (newData && (newData.userName === name) && (newData.thread !== cThread)) {
             replyData = newData
@@ -335,6 +334,7 @@
           }
         }
 
+        let review
         if (replyData) {
           const { thread, time, content, id, page } = replyData
           const isMaxDepth = depth > MAX_DEPTH
@@ -343,11 +343,11 @@
               handleReplace(thread, depth + 1) :
               content
           ).replace(/<img\s*[^>]*\/?>/g, '[图片]')
-          const anchor = max !== null && location.search.startsWith('?p=') ?
+          const anchor = searchP !== null ?
             `?p=${ page }#${ id }` :
             `#${ id }`
           const handleClick = `(function (t) { const p = t.parentNode, v = p.getAttribute('collapsed'); p.setAttribute('collapsed', v === 'true' ? 'false' : 'true') })(this)`
-          const review = `
+          review = `
           <div style="width: 100%; height: 5px"></div>
           <div class="${ containerName }">
             <strong>${ replyData.userNameNode }</strong>
@@ -366,9 +366,8 @@
           </div>
           <div style="width: 100%; height: 5px"></div>
           `
-          return prev.replace(target, review)
         } else { /** 均未命中时处理 */
-          const review = `
+          review = `
           <div style="width: 100%; height: 5px"></div>
           <div class="${ containerName }" exceed="true">
             <strong><a href="/member/${ name }" style="color: rgb(128, 128, 128); text-decoration: none">${ name }</a></strong>
@@ -376,17 +375,19 @@
           </div>
           <div style="width: 100%; height: 5px"></div>
           `
-          return prev.replace(target, review)
         }
+        return prev.replace(target, review)
       }, innerHTML)
     }
 
     /** 回复预览 */
     new Promise((res, rej) => {
-      if (max !== null) {
+      if (searchP !== null && searchP > 1) {
         /** 获取完整回复列表 */
         Promise
-          .all(Array.from({ length: max }).map((val, i) => fetch(location.origin + location.pathname + `?p=${ i + 1 }`, {
+          .all(Array.from({ length: searchP })
+          .slice(0, -1)
+          .map((val, i) => fetch(location.origin + location.pathname + `?p=${ i + 1 }`, {
             cache: 'no-cache',
           })))
           .then(values => Promise.all(values.map(response => response.text())))
@@ -399,6 +400,7 @@
               fragment.appendChild(body)
               extractData(fragment, index + 1)
             })
+            extractData(document, searchP) /** 追加当前页面数据 */
             res()
           })
           .catch(err => rej(err))
@@ -507,5 +509,18 @@
           `${ tag }<img src="${ src }" onerror="${ handleError }"/></a>` :
           fragment
       })
+  }
+  function requiredStr (str) {
+    return typeof str === 'string' && str.length > 0
+  }
+  function parseReplyNumber (str) {
+    return requiredStr(str) ? parseInt(str.match(/\d+/)[0]) : NaN
+  }
+  function getSearchP () {
+    let p = location.search.match(/p=(\d+)/)
+
+    p = p === null ? NaN : parseInt(p[1])
+
+    return isNaN(p) ? null : p
   }
 })()
