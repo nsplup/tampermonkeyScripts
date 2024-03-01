@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.15
+// @version      0.7.16
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -15,7 +15,7 @@
   const AUTO_DAILY_BONUS = true /** 自动签到开关 */
   const MAX_DEPTH = 4 /** 回复预览最大深度 */
   const MAX_HEIGHT = 200 /** 超过最大高度时折叠 */
-  const MAX_THREAD_HEIGHT = 350 /** 单层回复最大高度 */
+  const MAX_THREAD_HEIGHT = 400 /** 单层回复最大高度 */
   const COLLAPSE_DEFAULT = true /** 当值为 true 时，默认折叠 */
 
   const $ = document.querySelector.bind(document)
@@ -453,9 +453,9 @@
             el.parentNode.setAttribute('collapsed', COLLAPSE_DEFAULT)
           }
         })
-      /** 当合计高超过阈值时强制折叠所有回复预览 */
-      $$('[id*="r_"]').forEach(root => {
-        const content = $$(contentClassName, root)[0]
+      /** 当高度超过阈值时折叠内容 */
+      const addCollapseHandler = (root, cClass) => {
+        const content = $$(cClass, root)[0]
         const height = content.offsetHeight
         if (height > MAX_THREAD_HEIGHT) {
           const mask = document.createElement('div')
@@ -463,8 +463,15 @@
           mask.innerHTML = `<span toggle="open">展开</span><span toggle="close">收起</span>`
           mask.addEventListener('click', () => {
             if (root.getAttribute('collapsed') === 'false') {
-              if (root.getClientRects()[0].top < 0) { root.scrollIntoView() }
+              const docEl = document.documentElement
+              const beforeHeight = docEl.scrollHeight
               root.setAttribute('collapsed', 'true')
+              if (root.getClientRects()[0].top < 0) {
+                const afterHeight = docEl.scrollHeight
+                document.documentElement.scrollTo({
+                  top: document.documentElement.scrollTop - (beforeHeight - afterHeight)
+                })
+              }
             } else {
               root.setAttribute('collapsed', 'false')
             }
@@ -472,7 +479,9 @@
           root.appendChild(mask)
           root.setAttribute('collapsed', 'true')
         }
-      })
+      }
+      addCollapseHandler($(topicClassName).parentNode, topicClassName)
+      $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName))
       /** 为主题页添加屏蔽入口 */
       $$('.avatar')
         .slice(2)
