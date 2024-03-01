@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.2.5
+// @version      0.3.0
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -15,7 +15,9 @@
   const $ = document.querySelector.bind(document)
   const $$ = (selectors, parent = document) => Array.from(parent.querySelectorAll(selectors))
 
+  /** 用户配置 */
   const DEBUG_MODE = true
+  const SEARCH_LINK = 'https://www.google.com/search?q='
 
   const tEls = []
   const tData = []
@@ -323,6 +325,44 @@
       })
     }
   }
+  /** 添加一键搜索按钮 */
+  if (true /** 限定作用域 */) {
+    const REGEXPS = [
+      /\[\d+\](\[[^\]]+\]){2}([^\[]+)/g,
+      /(.+)\s*(raw)?\s*第[\d\-]+巻/g,
+    ]
+    $$('.default').forEach((parent, index) => {
+      const { name } = tData[index]
+      const [ignore, ignore2, link] = $$('td', parent)
+      const aEl = document.createElement('a')
+      const param = REGEXPS.reduce((prev, current, i) => {
+        let ign, ign2, ign3, ign4, ign5, ign6, ign7, ign8, ign9
+        let p
+        const matched = Array.from(name.matchAll(current))[0]
+        if (Array.isArray(matched)) {
+          switch (i) {
+            case 0:
+              [ign, ign2, p] = matched
+              prev.push(cleanParam(p))
+              break
+            case 1:
+              [ign, p] = matched
+              prev.push(cleanParam2(p))
+          }
+        }
+        return prev
+      }, [])[0]
+
+      if (requiredStr(param)) {
+        aEl.setAttribute('href', toLegalParam(param))
+      } else {
+        aEl.style = 'color: #a2a2a2; cursor: no-drop;'
+      }
+      aEl.innerHTML = '<i class="fa fa-search fa-fw"></i>'
+      aEl.setAttribute('target', '_blank')
+      link.appendChild(aEl)
+    })
+  }
   function addVisited (urls, ref) {
     urls.forEach(url => history.pushState({}, "", url))
     setTimeout(() => history.replaceState({}, "", ref))
@@ -349,6 +389,27 @@
         }
         return prev
       }, {})
+  }
+  function requiredStr (str) {
+    return typeof str === 'string' && str.length > 0
+  }
+  function cleanParam (keyword) {
+    const REGEXPS = [
+      /\@COMIC\s第\d+巻/,
+      /THE\sCOMIC\s\d+巻/,
+      /[（\()][０-９\d]+[\)）]/,
+      /([０-９]|\d)+巻?$/,
+    ]
+
+    return REGEXPS.reduce((prev, current) => prev.replace(current, ''), keyword.trim()).trim()
+  }
+  function cleanParam2 (keyword) {
+    return keyword.trim().replace(/raw$/, '').trim()
+  }
+  function toLegalParam (keyword) {
+    keyword = keyword.replace(/\s/g, '+')
+    keyword = encodeURIComponent(keyword)
+    return SEARCH_LINK + keyword
   }
   /**
    * @description YYYY => Year;
