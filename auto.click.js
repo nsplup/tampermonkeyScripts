@@ -12,7 +12,6 @@
   'use strict';
   const $ = document.querySelector.bind(document)
 
-  const DEBUG_MODE = false
   const PATTERN = {
     '*dlsite.com/*': [
       {
@@ -51,12 +50,6 @@
         if (pre === undefined || pre === null || preVal) {
           el && el.click && el.click()
         }
-        DEBUG_MODE && console.table({
-          query,
-          hasEl: !!el,
-          'callable': el && typeof el.click === 'function',
-          preVal
-        })
         setTimeout(res, 300)
       })
       rules.forEach(rule => {

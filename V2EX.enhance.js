@@ -10,13 +10,12 @@
 
 (function() {
   'use strict'
-  const DEBUG_MODE = false
 
   /** 用户配置 */
   const AUTO_DAILY_BONUS = true /** 自动签到开关 */
   const MAX_DEPTH = 4 /** 回复预览最大深度 */
   const MAX_HEIGHT = 200 /** 超过最大高度时折叠 */
-  const MAX_THREAD_HEIGHT = 400 /** 单层回复最大高度 */
+  const MAX_THREAD_HEIGHT = 350 /** 单层回复最大高度 */
   const COLLAPSE_DEFAULT = true /** 当值为 true 时，默认折叠 */
 
   const $ = document.querySelector.bind(document)
@@ -313,9 +312,6 @@
         }
         const cThreadNum = parseInt(cThread)
         const rThreadNum = parseReplyNumber(replyNumber)
-        DEBUG_MODE && console.table({
-          cThread, target, name, replyNumber
-        })
         let replyData = null
         let contentsEntries = Object.entries(contents)
           .filter(([key, val]) => (val.userName === name) && (parseInt(val.thread) < cThreadNum))
@@ -443,7 +439,6 @@
         res()
       }
     }).then(() => {
-      DEBUG_MODE && console.log(contents)
       $$(contentClassName)
         .forEach(content => {
           content.innerHTML = replaceIMGLink(handleReplace(getThread(content.parentNode)))
@@ -541,10 +536,6 @@
         el.removeAttribute('onclick')
         el.style = style + 'cursor: pointer;'
         el.addEventListener('click', fn)
-      })
-      DEBUG_MODE && console.log(ignoreBtn, thankBtn, replyBtn)
-      DEBUG_MODE && console.table({
-        thread, id, replayContent
       })
     })
 

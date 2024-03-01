@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.3.0
+// @version      0.3.1
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -16,8 +16,7 @@
   const $$ = (selectors, parent = document) => Array.from(parent.querySelectorAll(selectors))
 
   /** 用户配置 */
-  const DEBUG_MODE = true
-  const SEARCH_LINK = 'https://www.google.com/search?q='
+  const DEBUG_MODE = false
 
   const tEls = []
   const tData = []
@@ -89,6 +88,17 @@
     }
     .nse-marked:hover {
       background: #c6edfd !important;
+    }
+    td:hover .nse-container {
+      display: flex;
+    }
+    .nse-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      height: 100%;
     }
     `
     document.head.appendChild(newStyle)
@@ -251,8 +261,9 @@
   /** 搜索结果进度保存 */
   const NSE_MARKS = 'NSE_MARKS'
   const EXP_TIME = 365 * 24 * 60 * 60 * 1000 /** 过期时间为一年后 */
-  const { q } = parse(location.search.slice(1)) /** 获取搜索关键词 */
-  if (q !== undefined) {
+  const LSearch = parse(location.search.slice(1))
+  const { q } = LSearch /** 获取搜索关键词 */
+  if (requiredStr(q)) {
     let marks = JSON.parse(GM_getValue(NSE_MARKS) || '{}')
     updateMarkedStyle()
 
@@ -325,18 +336,24 @@
       })
     }
   }
-  /** 添加一键搜索按钮 */
+  /** 添加便捷按钮 */
   if (true /** 限定作用域 */) {
     const REGEXPS = [
-      /\[\d+\](\[[^\]]+\]){2}([^\[]+)/g,
-      /(.+)\s*(raw)?\s*第[\d\-]+巻/g,
+      /^\[\d+\](\[[^\]]+\]){2}([^\[]+)/g,
+      /^(.+)\s*(raw)?\s*第[\d\-]+巻/g,
+      /^\[[^\]]+\]\s*(.+)/g,
+      /^([\w\s]+)/g,
     ]
-    $$('.default').forEach((parent, index) => {
+    $$('tbody tr').forEach((parent, index) => {
       const { name } = tData[index]
-      const [ignore, ignore2, link] = $$('td', parent)
-      const aEl = document.createElement('a')
+      const [ignore, title] = $$('td', parent)
+      const container = document.createElement('div')
+      const copyEl = document.createElement('span')
+      const googleEl = document.createElement('a')
+      const search = document.createElement('a') /** 搜索关键词 */
+      const searchWithCP = document.createElement('a') /** 搜索关键词并带上当前关键词 */
       const param = REGEXPS.reduce((prev, current, i) => {
-        let ign, ign2, ign3, ign4, ign5, ign6, ign7, ign8, ign9
+        let ign, ign2
         let p
         const matched = Array.from(name.matchAll(current))[0]
         if (Array.isArray(matched)) {
@@ -348,19 +365,55 @@
             case 1:
               [ign, p] = matched
               prev.push(cleanParam2(p))
+              break
+            case 2:
+            case 3:
+              [ign, p] = matched
+              prev.push(cleanParam3(p))
+              break
           }
         }
         return prev
       }, [])[0]
 
+      container.className = 'nse-container'
       if (requiredStr(param)) {
-        aEl.setAttribute('href', toLegalParam(param))
-      } else {
-        aEl.style = 'color: #a2a2a2; cursor: no-drop;'
+        [
+          {
+            el: copyEl,
+            html: 'COPY',
+          },
+          {
+            el: googleEl,
+            html: 'GOOGLE',
+            href: googleLink(param),
+          },
+          {
+            el: search,
+            html: '<i class="fa fa-search fa-fw"></i>',
+            href: searchKW(param, false),
+          },
+          {
+            el: searchWithCP,
+            html: '<i class="fa fa-search fa-fw"></i>PLUS',
+            href: searchKW(param, true),
+          }, 
+        ].forEach(({ el, html, href }) => {
+          el.className = 'comments'
+          el.style = 'font-weight: bold; cursor: pointer; margin-right: 5px; text-decoration: none; color: #383838 !important;'
+          el.innerHTML = html
+          href && (el.href = href)
+          el.setAttribute('target', '_blank')
+          if (el !== searchWithCP || requiredStr(q)) {
+            container.appendChild(el)
+          }
+        })
+        copyEl.addEventListener('click', () => {
+          navigator.clipboard.writeText(param)
+        })
+        title.style = 'position: relative;'
+        title.appendChild(container)
       }
-      aEl.innerHTML = '<i class="fa fa-search fa-fw"></i>'
-      aEl.setAttribute('target', '_blank')
-      link.appendChild(aEl)
     })
   }
   function addVisited (urls, ref) {
@@ -372,6 +425,7 @@
   }
   function parse (input, sep = '&', eq = '=', decodeURIC = decodeURIComponent) {
     return input.split(sep)
+      .filter(n => n.length > 0)
       .reduce((prev, current) => {
         const [key, val] = current.split(eq)
         const decodedKey = decodeURIC(key)
@@ -406,10 +460,42 @@
   function cleanParam2 (keyword) {
     return keyword.trim().replace(/raw$/, '').trim()
   }
-  function toLegalParam (keyword) {
-    keyword = keyword.replace(/\s/g, '+')
-    keyword = encodeURIComponent(keyword)
-    return SEARCH_LINK + keyword
+  function cleanParam3 (keyword) {
+    const i = ['(', '[', '-', '/']
+    const regexp = new RegExp([
+      's\\d+', 'e\\d+',
+      'VOSTFR',
+      '1080p', 'web', 'x264', 'aac',
+    ].join('|') + '$', 'gi')
+    let end = 0
+    while (true) {
+      let char = keyword.charAt(++end)
+      if (i.includes(char)) {
+        if ( char !== '-' || keyword.charAt(end + 1) === ' ' ) { break }
+      }
+      if (end > keyword.length) { break }
+    }
+    keyword = keyword.slice(0, end)
+    const extra = Array.from(keyword.matchAll(regexp))
+    if (extra.length > 0) {
+      const index = extra[0].index
+      keyword = keyword.slice(0, index)
+    }
+    return keyword
+  }
+  function googleLink (keyword) {
+    return 'https://www.google.com/search?q=' + encodeURIComponent(keyword)
+  }
+  function searchKW (keyword, cp) {
+    const { q: _q } = LSearch
+    let _search = Object.entries(Object.assign({}, LSearch, {
+      q: cp && _q ? _q + encodeURIComponent(' ' + keyword) : encodeURIComponent(keyword)
+    })).reduce((prev, current) => {
+      const [key, val] = current
+      prev.push(`${key}=${val}`)
+      return prev
+    }, []).join('&')
+    return `${ location.origin }/?${_search}`
   }
   /**
    * @description YYYY => Year;
