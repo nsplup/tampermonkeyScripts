@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.14
+// @version      0.7.15
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -516,14 +516,37 @@
     })
     .catch(err => console.error('[V2EXE] Error: \n', err))
 
-    /** 回复优化 */
-    $$('a[onclick*="replyOne"]')
-      .forEach(el => {
-        const attribute = el.getAttribute('onclick')
-        const thread = getThread(el.parentNode)
+    /** 楼层右侧按键优化 */
+    $$('[id*=thank_area_]').forEach(area => {
+      const parent = area.parentNode
+      const thread = getThread(parent)
+      const [ignoreBtn, thankBtn, replyBtn] = $$('a', parent)
+      const id = area.getAttribute('id').replace('thank_area_', '')
+      const replayContent = `${ replyBtn.getAttribute('onclick').slice(10, -3)} #${ thread }`
 
-        el.setAttribute('onclick', `${ attribute.slice(0, -3) } #${ thread }');`)
+      area.removeChild(ignoreBtn);
+      [
+        {
+          el: thankBtn,
+          style: 'color: var(--link-color);',
+          fn: () => { thankReply(id) }
+        },
+        {
+          el: replyBtn,
+          style: '',
+          fn: () => { replyOne(replayContent) }
+        }
+      ].forEach(({ el, style, fn }) => {
+        el.removeAttribute('href')
+        el.removeAttribute('onclick')
+        el.style = style + 'cursor: pointer;'
+        el.addEventListener('click', fn)
       })
+      DEBUG_MODE && console.log(ignoreBtn, thankBtn, replyBtn)
+      DEBUG_MODE && console.table({
+        thread, id, replayContent
+      })
+    })
 
     /** 主题内容优化 */
     $$(topicClassName)
