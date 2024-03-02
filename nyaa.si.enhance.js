@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.3.1
+// @version      0.3.2
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -342,7 +342,7 @@
       /^\[\d+\](\[[^\]]+\]){2}([^\[]+)/g,
       /^(.+)\s*(raw)?\s*第[\d\-]+巻/g,
       /^\[[^\]]+\]\s*(.+)/g,
-      /^([\w\s]+)/g,
+      /^([^\[\(]+)/g,
     ]
     $$('tbody tr').forEach((parent, index) => {
       const { name } = tData[index]
@@ -461,19 +461,20 @@
     return keyword.trim().replace(/raw$/, '').trim()
   }
   function cleanParam3 (keyword) {
+    keyword = keyword.replace(/[\_\.]/g, ' ')
     const i = ['(', '[', '-', '/']
     const regexp = new RegExp([
-      's\\d+', 'e\\d+',
-      'VOSTFR',
-      '1080p', 'web', 'x264', 'aac',
+      's\\d+', 'ep?\\d+', 'v\\d+', 'v?\\d+\\-\\d+', 'Volume\\s\\d+', 'Vol\\.?\\d+', '\#\\d+',
+      'VOSTFR', 'BluRay',
+      '1080p', '720p', 'web', 'x264', 'aac',
+      'HD720', 'HD1080', 'x265', 'h264',
     ].join('|') + '$', 'gi')
     let end = 0
-    while (true) {
+    while (end < keyword.length) {
       let char = keyword.charAt(++end)
       if (i.includes(char)) {
         if ( char !== '-' || keyword.charAt(end + 1) === ' ' ) { break }
       }
-      if (end > keyword.length) { break }
     }
     keyword = keyword.slice(0, end)
     const extra = Array.from(keyword.matchAll(regexp))
@@ -481,7 +482,7 @@
       const index = extra[0].index
       keyword = keyword.slice(0, index)
     }
-    return keyword
+    return keyword.trim()
   }
   function googleLink (keyword) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(keyword)
@@ -489,10 +490,10 @@
   function searchKW (keyword, cp) {
     const { q: _q } = LSearch
     let _search = Object.entries(Object.assign({}, LSearch, {
-      q: cp && _q ? _q + encodeURIComponent(' ' + keyword) : encodeURIComponent(keyword)
+      q: cp && _q ? [_q, keyword].join(' ') : keyword
     })).reduce((prev, current) => {
       const [key, val] = current
-      prev.push(`${key}=${val}`)
+      prev.push(`${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
       return prev
     }, []).join('&')
     return `${ location.origin }/?${_search}`

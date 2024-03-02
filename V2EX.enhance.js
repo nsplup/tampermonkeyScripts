@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.16
+// @version      0.7.17
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -463,13 +463,11 @@
           mask.innerHTML = `<span toggle="open">展开</span><span toggle="close">收起</span>`
           mask.addEventListener('click', () => {
             if (root.getAttribute('collapsed') === 'false') {
-              const docEl = document.documentElement
-              const beforeHeight = docEl.scrollHeight
               root.setAttribute('collapsed', 'true')
-              if (root.getClientRects()[0].top < 0) {
-                const afterHeight = docEl.scrollHeight
+              if (root.getClientRects()[0].top < -200) {
+                root.scrollIntoView()
                 document.documentElement.scrollTo({
-                  top: document.documentElement.scrollTop - (beforeHeight - afterHeight)
+                  top: document.documentElement.scrollTop + MAX_THREAD_HEIGHT - 50
                 })
               }
             } else {
