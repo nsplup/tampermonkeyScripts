@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.3.2
+// @version      0.3.3
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -482,7 +482,7 @@
       const index = extra[0].index
       keyword = keyword.slice(0, index)
     }
-    return keyword.trim()
+    return keyword.replace(/[\[\]]/g, '').trim()
   }
   function googleLink (keyword) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(keyword)

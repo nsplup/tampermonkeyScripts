@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.17
+// @version      0.7.18
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -478,8 +478,18 @@
           root.setAttribute('collapsed', 'true')
         }
       }
-      addCollapseHandler($(topicClassName).parentNode, topicClassName)
-      $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName))
+      /** 轮询是否所有图片元素完成加载 */
+      const delay = 300
+      const handleTimer = () => {
+        const imgEls = $$('img').filter(img => !img.complete)
+        if (imgEls.length === 0) {
+          addCollapseHandler($(topicClassName).parentNode, topicClassName)
+          $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName))
+        } else {
+          setTimeout(handleTimer, delay)
+        }
+      }
+      setTimeout(handleTimer, delay)
       /** 为主题页添加屏蔽入口 */
       $$('.avatar')
         .slice(2)
