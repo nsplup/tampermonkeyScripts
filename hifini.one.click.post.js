@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         hifini.one.click.post
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3
+// @version      0.0.4
 // @description  hifini 一键回复
 // @author       Luke Pan
 // @match        https://*.hifini.com/thread-*
+// @match        http://*.hifini.com/thread-*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=hifini.com
 // @grant        none
 // ==/UserScript==
