@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.3.3
+// @version      0.3.4
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -449,13 +449,14 @@
   }
   function cleanParam (keyword) {
     const REGEXPS = [
-      /\@COMIC\s第\d+巻/,
-      /THE\sCOMIC\s\d+巻/,
-      /[（\()][０-９\d]+[\)）]/,
+      /\@COMIC\s第\d+巻$/,
+      /THE\sCOMIC\s\d+巻$/,
+      /[（\()][０-９\d]+[\)）]$/,
+      /その([０-９]|\d)+$/,
       /([０-９]|\d)+巻?$/,
     ]
 
-    return REGEXPS.reduce((prev, current) => prev.replace(current, ''), keyword.trim()).trim()
+    return REGEXPS.reduce((prev, current) => prev.replace(current, '').trim(), keyword.trim()).trim()
   }
   function cleanParam2 (keyword) {
     return keyword.trim().replace(/raw$/, '').trim()
