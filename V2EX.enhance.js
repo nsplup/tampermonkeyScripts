@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.19
+// @version      0.7.20
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -192,7 +192,7 @@
         bottom: 0;
         width: 100%;
         height: 50px;
-        background: linear-gradient(transparent 15%, white, white);
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff 26px);
         cursor: pointer;
       }
       .cell[collapsed=false] .${ maskName } {
