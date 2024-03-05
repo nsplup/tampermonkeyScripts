@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.18
+// @version      0.7.19
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -532,11 +532,17 @@
     $$('[id*=thank_area_]').forEach(area => {
       const parent = area.parentNode
       const thread = getThread(parent)
-      const [ignoreBtn, thankBtn, replyBtn] = $$('a', parent)
+      let ignoreBtn, thankBtn, replyBtn
+      const btns = $$('a', parent)
+      if (btns.length === 1) {
+        [replyBtn] = btns
+      } else {
+        [ignoreBtn, thankBtn, replyBtn] = btns
+      }
       const id = area.getAttribute('id').replace('thank_area_', '')
       const replayContent = `${ replyBtn.getAttribute('onclick').slice(10, -3)} #${ thread }`
 
-      area.removeChild(ignoreBtn);
+      ignoreBtn && area.removeChild(ignoreBtn);
       [
         {
           el: thankBtn,
@@ -549,10 +555,12 @@
           fn: () => { replyOne(replayContent) }
         }
       ].forEach(({ el, style, fn }) => {
-        el.removeAttribute('href')
-        el.removeAttribute('onclick')
-        el.style = style + 'cursor: pointer;'
-        el.addEventListener('click', fn)
+        if (el) {
+          el.removeAttribute('href')
+          el.removeAttribute('onclick')
+          el.style = style + 'cursor: pointer;'
+          el.addEventListener('click', fn)
+        }
       })
     })
 
