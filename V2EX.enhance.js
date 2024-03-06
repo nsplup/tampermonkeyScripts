@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.20
+// @version      0.7.21
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -565,8 +565,18 @@
     })
 
     /** 主题内容优化 */
-    $$(topicClassName)
-      .forEach(el => { el.innerHTML = replaceIMGLink(el.innerHTML) })
+    $$(topicClassName).forEach(el => { el.innerHTML = replaceIMGLink(el.innerHTML) })
+    $$('#topic_thank').forEach(root => { /** 移除主题感谢按钮弹窗 */
+      const el = $$('a', root)[0]
+      if (el) {
+        const [id, once] = el.getAttribute('onclick').slice(-20, -4).split(/,\s*/)
+  
+        el.removeAttribute('href')
+        el.removeAttribute('onclick')
+        el.style = 'font-size: 12px; line-height: 12px; color: #333; text-decoration: none; display: inline-block; padding: 3px 10px; border-radius: 15px; text-shadow: 0 1px 0 #fff; cursor: pointer;'
+        el.addEventListener('click', () => { thankTopic(parseInt(id), once.slice(1, -1)) })
+      }
+    })
   }
   /** 替换链接为图片 */
   function replaceIMGLink (innerHTML) {
