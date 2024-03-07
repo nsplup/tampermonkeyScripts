@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.21
+// @version      0.7.22
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -120,6 +120,7 @@
     const blockContainerName = 'v2exe_block_container'
     const blockMainName = 'v2exe_block_main'
     const maskName = 'v2exe_mask'
+    const maskTopicName = 'v2exe_mask_topic'
     const CSSText = `
       .${ containerName } {
         position: relative;
@@ -184,6 +185,21 @@
       .cell[collapsed=true] {
         height: ${ MAX_THREAD_HEIGHT }px;
         overflow: hidden;
+      }
+      .cell[collapsed=false] + .topic_buttons {
+        position: sticky;
+        bottom: 0;
+      }
+      .${ maskTopicName } {
+        display: none;
+      }
+      .cell[collapsed=true] > .${ maskTopicName } {
+        display: block;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff 26px);
       }
       .${ maskName } {
         display: flex;
@@ -262,6 +278,9 @@
       div + br + br,
       .${ containerName } .embedded_video_wrapper {
         display: none;
+      }
+      .subtle:last-child {
+        border-bottom: unset !important;
       }
     `
     style.innerHTML = CSSText
@@ -454,17 +473,22 @@
           }
         })
       /** 当高度超过阈值时折叠内容 */
-      const addCollapseHandler = (root, cClass) => {
-        const content = $$(cClass, root)[0]
-        const height = content.offsetHeight
+      const addCollapseHandler = (root, cClass, isTopic) => {
+        let height
+        if (isTopic) {
+          height = root.offsetHeight
+        } else {
+          const content = $$(cClass, root)[0]
+          height = content ?
+            content.offsetHeight :
+            -1
+        }
         if (height > MAX_THREAD_HEIGHT) {
-          const mask = document.createElement('div')
-          mask.className = maskName
-          mask.innerHTML = `<span toggle="open">展开</span><span toggle="close">收起</span>`
-          mask.addEventListener('click', () => {
-            if (root.getAttribute('collapsed') === 'false') {
+          const handleClick = () => {
+            const collapsed = root.getAttribute('collapsed')
+            if (collapsed === 'false') {
               root.setAttribute('collapsed', 'true')
-              if (root.getClientRects()[0].top < -200) {
+              if (root.getClientRects()[0].top < -200 && !isTopic) {
                 root.scrollIntoView()
                 document.documentElement.scrollTo({
                   top: document.documentElement.scrollTop + MAX_THREAD_HEIGHT - 50
@@ -473,8 +497,28 @@
             } else {
               root.setAttribute('collapsed', 'false')
             }
-          })
-          root.appendChild(mask)
+            return collapsed
+          }
+          if (isTopic) {
+            const toggleBtn = document.createElement('a')
+            toggleBtn.className = 'tb'
+            toggleBtn.href = '#'
+            toggleBtn.innerText = '展开'
+            toggleBtn.addEventListener('click', () => {
+              const collapsed = handleClick()
+              toggleBtn.innerText = collapsed === 'true' ? '收起' : '展开'
+            })
+            $('.topic_buttons').appendChild(toggleBtn)
+            const mask = document.createElement('div')
+            mask.className = maskTopicName
+            root.appendChild(mask)
+          } else {
+            const mask = document.createElement('div')
+            mask.className = maskName
+            mask.innerHTML = `<span toggle="open">展开</span><span toggle="close">收起</span>`
+            mask.addEventListener('click', handleClick)
+            root.appendChild(mask)
+          }
           root.setAttribute('collapsed', 'true')
         }
       }
@@ -483,8 +527,14 @@
       const handleTimer = () => {
         const imgEls = $$('img').filter(img => !img.complete)
         if (imgEls.length === 0) {
-          addCollapseHandler($(topicClassName).parentNode, topicClassName)
-          $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName))
+          /** 附言合并 */
+          const topicEl = $(topicClassName)
+          const parentNode = topicEl.parentNode
+          $$('.subtle', parentNode.parentNode).forEach(el => parentNode.appendChild(el))
+          parentNode.style.padding = 'unset'
+          topicEl.style = 'padding: 10px; border-bottom: 1px solid var(--box-border-color);'
+          addCollapseHandler(parentNode, null, true)
+          $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName, false))
         } else {
           setTimeout(handleTimer, delay)
         }
