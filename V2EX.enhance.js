@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.22
+// @version      0.7.23
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -503,6 +503,7 @@
             const toggleBtn = document.createElement('a')
             toggleBtn.className = 'tb'
             toggleBtn.href = '#'
+            toggleBtn.style = 'margin-left: 8px'
             toggleBtn.innerText = '展开'
             toggleBtn.addEventListener('click', () => {
               const collapsed = handleClick()
