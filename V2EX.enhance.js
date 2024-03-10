@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.23
+// @version      0.7.24
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -279,6 +279,9 @@
       .${ containerName } .embedded_video_wrapper {
         display: none;
       }
+      .subtle:nth-child(2) {
+        border-top: 1px solid var(--box-border-color);
+      }
       .subtle:last-child {
         border-bottom: unset !important;
       }
@@ -485,10 +488,9 @@
         }
         if (height > MAX_THREAD_HEIGHT) {
           const handleClick = () => {
-            const collapsed = root.getAttribute('collapsed')
-            if (collapsed === 'false') {
+            if (root.getAttribute('collapsed') === 'false') {
               root.setAttribute('collapsed', 'true')
-              if (root.getClientRects()[0].top < -200 && !isTopic) {
+              if (root.getClientRects()[0].top < -200) {
                 root.scrollIntoView()
                 document.documentElement.scrollTo({
                   top: document.documentElement.scrollTop + MAX_THREAD_HEIGHT - 50
@@ -497,16 +499,25 @@
             } else {
               root.setAttribute('collapsed', 'false')
             }
+          }
+          const handleClickTopic = () => {
+            const collapsed = root.getAttribute('collapsed')
+            const scrollTop = document.documentElement.scrollTop
+            root.setAttribute(
+              'collapsed',
+              collapsed === 'false' ? 'true' : 'false'
+            )
+            document.documentElement.scrollTo({ top: scrollTop })
             return collapsed
           }
           if (isTopic) {
             const toggleBtn = document.createElement('a')
             toggleBtn.className = 'tb'
-            toggleBtn.href = '#'
+            toggleBtn.href = '#;'
             toggleBtn.style = 'margin-left: 8px'
             toggleBtn.innerText = '展开'
             toggleBtn.addEventListener('click', () => {
-              const collapsed = handleClick()
+              const collapsed = handleClickTopic()
               toggleBtn.innerText = collapsed === 'true' ? '收起' : '展开'
             })
             $('.topic_buttons').appendChild(toggleBtn)
@@ -533,7 +544,7 @@
           const parentNode = topicEl.parentNode
           $$('.subtle', parentNode.parentNode).forEach(el => parentNode.appendChild(el))
           parentNode.style.padding = 'unset'
-          topicEl.style = 'padding: 10px; border-bottom: 1px solid var(--box-border-color);'
+          topicEl.style = 'padding: 10px;'
           addCollapseHandler(parentNode, null, true)
           $$('[id*="r_"]').forEach(root => addCollapseHandler(root, contentClassName, false))
         } else {
