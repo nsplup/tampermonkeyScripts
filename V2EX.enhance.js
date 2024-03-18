@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.7.24
+// @version      0.8.1
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -285,6 +285,10 @@
       .subtle:last-child {
         border-bottom: unset !important;
       }
+      del {
+        background: #ffa0a0;
+        text-decoration: none;
+      }
     `
     style.innerHTML = CSSText
     document.head.appendChild(style)
@@ -536,13 +540,39 @@
       }
       /** 轮询是否所有图片元素完成加载 */
       const delay = 300
+      const usedkeyRegExp = /(\w+)\s*已用/gi
+      let usedCDKEYPool = null
+      const handleUsedCDKEY = el => {
+        /** 搜集已使用 CDKEY */
+        if (usedCDKEYPool === null) {
+          const usedkey = []
+          Object.entries(contents).forEach(([key, val]) => {
+            const { content } = val
+            const matched = Array.from(content.matchAll(usedkeyRegExp))
+            if (matched.length > 0) {
+              usedkey.push(...matched.map(([all, cdkey]) => cdkey))
+            }
+          })
+          usedCDKEYPool = usedkey
+        }
+        const newContent = el.innerHTML.replace(/\w+/g, fragment => {
+          return usedCDKEYPool.includes(fragment) ?
+            `<del>${ fragment }</del>` :
+            fragment
+        })
+        el.innerHTML = newContent
+      }
       const handleTimer = () => {
         const imgEls = $$('img').filter(img => !img.complete)
         if (imgEls.length === 0) {
           /** 附言合并 */
           const topicEl = $(topicClassName)
           const parentNode = topicEl.parentNode
-          $$('.subtle', parentNode.parentNode).forEach(el => parentNode.appendChild(el))
+          $$('.subtle', parentNode.parentNode).forEach(el => {
+            handleUsedCDKEY(el) /** 对已经使用的 CDKEY 应用样式 */
+            parentNode.appendChild(el)
+          })
+          handleUsedCDKEY(topicEl) /** 对已经使用的 CDKEY 应用样式 */
           parentNode.style.padding = 'unset'
           topicEl.style = 'padding: 10px;'
           addCollapseHandler(parentNode, null, true)
