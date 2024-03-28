@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.1
+// @version      0.8.2
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -540,7 +540,7 @@
       }
       /** 轮询是否所有图片元素完成加载 */
       const delay = 300
-      const usedkeyRegExp = /(\w+)\s*已用/gi
+      const usedkeyRegExp = /(\w+)\s*已/gi
       let usedCDKEYPool = null
       const handleUsedCDKEY = el => {
         /** 搜集已使用 CDKEY */
