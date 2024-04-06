@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.3.5
+// @version      0.4.0
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -17,6 +17,9 @@
 
   /** 用户配置 */
   const DEBUG_MODE = false
+  const BAN_FILTER = [
+    'UPSCALED'
+  ]
 
   const tEls = []
   const tData = []
@@ -100,9 +103,36 @@
       top: 0;
       height: 100%;
     }
+    .nse-ban .nse-container { display: none !important; }
     `
     document.head.appendChild(newStyle)
 
+    /** 执行过滤 */
+    let removedCount = 0
+    $$('tbody tr').forEach(row => {
+      let [ignore, name] = $$('td', row)
+      name = $$('a:last-child', name)[0]
+      name = name.getAttribute('title')
+
+      let shouldRemove = false
+      for (let i = 0, len = BAN_FILTER.length; i < len; i++) {
+        const current = BAN_FILTER[i]
+        if (name.includes(current)) {
+          shouldRemove = true
+          break
+        }
+      }
+
+      if (shouldRemove) {
+        row.parentNode.removeChild(row)
+        removedCount++
+      }
+    })
+    if (removedCount > 0) {
+      $('.hdr-name').innerText += ` (Removed ${ removedCount } items)`
+    }
+    DEBUG_MODE && console.log(`[NSE] Ban Filter: Matched ${ removedCount } items`)
+    
     const rows = $$('tbody tr')
 
     for (let i = 0, len = rows.length; i < len; i++) {
@@ -413,6 +443,11 @@
         })
         title.style = 'position: relative;'
         title.appendChild(container)
+      }
+    })
+    window.addEventListener('keyup', e => {
+      if (e.code === 'Backquote') {
+        document.body.classList.toggle('nse-ban')
       }
     })
   }
