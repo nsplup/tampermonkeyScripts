@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         drive.code.free
 // @namespace    http://tampermonkey.net/
-// @version      0.5.4
+// @version      0.5.5
 // @description  网盘提取码自填充
 // @author       Luke Pan
 // @match        */*
@@ -28,8 +28,8 @@
   const PATTERN = {
     [BAIDU]: {
       regExp: [
-        new RegExp(BAIDU + '\\/share\\/init\\?surl=' + GENERAL_REGEXP),
-        new RegExp(BAIDU + '\\/s\\/1' + GENERAL_REGEXP),
+        '\\/share\\/init\\?surl=' + GENERAL_REGEXP,
+        '\\/s\\/1' + GENERAL_REGEXP,
       ],
       input: '#accessCode',
       button: '#submitBtn',
@@ -38,7 +38,7 @@
     },
     [LANZOU]: {
       regExp: [
-        new RegExp(LANZOU + '\\/' + GENERAL_REGEXP)
+        '\\/' + GENERAL_REGEXP,
       ],
       input: '#pwd',
       button: '.passwddiv-btn',
@@ -47,8 +47,8 @@
     },
     [TIANYI]: {
       regExp: [
-        new RegExp(TIANYI + '\\/t\\/' + GENERAL_REGEXP),
-        new RegExp(TIANYI + '\\/web\\/share\\?code\\=' + GENERAL_REGEXP),
+        '\\/t\\/' + GENERAL_REGEXP,
+        '\\/web\\/share\\?code\\=' + GENERAL_REGEXP,
       ],
       input: '#code_txt',
       button: '.access-code-item .visit',
@@ -57,7 +57,7 @@
     },
     [ALIYUN]: {
       regExp: [
-        new RegExp(ALIYUN + '\\/s\\/' + GENERAL_REGEXP),
+        '\\/s\\/' + GENERAL_REGEXP,
       ],
       input: 'form input',
       button: 'form button',
@@ -65,6 +65,12 @@
       alt: true,
     }
   }
+
+  const LANZOU_ALIAS = 'lanzn\\.com' /** 蓝奏云别名 */
+
+  alias(LANZOU_ALIAS, LANZOU)
+
+  standardizedRegExp()
 
   let hostname, bundle, observer
   const PATTERN_KEYS = Object.keys(PATTERN)
@@ -213,6 +219,27 @@
 
       return prev
     }, [])[0]
+  }
+
+  function alias (key, target) {
+    target = PATTERN[target]
+    Object.assign(PATTERN, { [key]: target })
+  }
+
+  function standardizedRegExp () {
+    const keys = Object.keys(PATTERN)
+    const result = {}
+
+    for (let i = 0, len = keys.length; i < len; i++) {
+      const cKey = keys[i]
+      const cVal = PATTERN[cKey]
+
+      result[cKey] = Object.assign({}, cVal, {
+        regExp: cVal.regExp.map(rule => new RegExp(cKey + rule))
+      })
+    }
+
+    Object.assign(PATTERN, result)
   }
 
   function debounce (fn, delay) {
