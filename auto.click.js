@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         auto.click
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  自动点击
 // @author       Luke Pan
 // @match        */*
@@ -26,7 +26,12 @@
       {
         query: '[href*="/over18"]', /** 成人确认 */
       }
-    ]
+    ],
+    'http?://www.bilibili.com/': [
+      {
+        query: '.adblock-tips img', /** 反广告插件确认 */
+      }
+    ],
   }
 
   const PATTERN_ENTRIES = Object.entries(PATTERN)
@@ -66,6 +71,7 @@
     // 将传入的字符串转换为正则表达式
     const regexString = inputString
       .replace(/\./g, '\\.')
+      .replace(/\?/g, '.')
       .replace(/\*/g, '.*') // 将通配符 * 转换为正则表达式中的 .*
 
     const regex = new RegExp(`^${ regexString }$`)
