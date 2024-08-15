@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.0.7
+// @version      0.0.8
 // @description  bilibili 功能增强
 // @author       Luke Pan
 // @match        https://*.bilibili.com/*
@@ -18,6 +18,7 @@
       .bili-guide,
       .bili-vote,
       .bili-danmaku-x-vote,
+      .bili-danmaku-x-guide-all,
       .bili-score,
       .bili-cmd-shrink,
       .bili-qoeFeedback,
