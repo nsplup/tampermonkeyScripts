@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         qidian.score
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  起点推荐指数计算
 // @author       Luke Pan
 // @match        https://www.qidian.com/book/*
@@ -26,10 +26,18 @@
   const c10K = count.at(-1) === '万'
   const r10k = ref.at(-1) === '万'
 
-  count = parseFloat(count.slice(0, -1))
-  if (c10K) { count *= 10000 }
-  ref = parseFloat(ref.slice(0, -1))
-  if (r10k) { ref *= 10000 }
+  if (c10K) {
+    count = parseFloat(count.slice(0, -1))
+    count *= 10000
+  } else {
+    count = parseFloat(count)
+  }
+  if (r10k) {
+    ref = parseFloat(ref.slice(0, -1))
+    ref *= 10000
+  } else {
+    ref = parseFloat(ref)
+  }
 
   let index = 1000000 / count * ref / 10000
 
