@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.3
+// @version      0.8.4
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -284,10 +284,6 @@
       }
       .subtle:last-child {
         border-bottom: unset !important;
-      }
-      del {
-        background: #ffa0a0;
-        text-decoration: none;
       }
     `
     style.innerHTML = CSSText
