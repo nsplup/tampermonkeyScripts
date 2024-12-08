@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         drive.code.free
 // @namespace    http://tampermonkey.net/
-// @version      0.5.5
+// @version      0.5.6
 // @description  网盘提取码自填充
 // @author       Luke Pan
 // @match        */*
@@ -25,6 +25,7 @@
   const LANZOU = 'lanzou[a-z]\\.com' /** 蓝奏云 */
   const TIANYI = 'cloud\\.189\\.cn' /** 天翼云 */
   const ALIYUN = 'aliyundrive\\.com' /** 阿里云 */
+  const QUARK = 'pan\\.quark\\.cn' /** 夸克云 */
   const PATTERN = {
     [BAIDU]: {
       regExp: [
@@ -62,6 +63,15 @@
       input: 'form input',
       button: 'form button',
       prefix: 'aliyun',
+      alt: true,
+    },
+    [QUARK]: {
+      regExp: [
+        '\\/s\\/' + GENERAL_REGEXP + '(\\#\\/list\\/share)?'
+      ],
+      input: 'input[class*="input"]',
+      button: '[class*="submit"]',
+      prefix: 'quark',
       alt: true,
     }
   }
@@ -132,7 +142,7 @@
         const description = `自动填充失败；提取码：${ code }`
 
         label.innerText = description
-        label.style = 'position: absolute; left: 0px; font-size: 13px; padding: 5px 8px; background: white; border-radius: 5px; box-shadow: 0 0 5px #0000003d; z-index: 999; transform: translate3d(0, -125%, 0); user-select: none;'
+        label.style = 'position: absolute; font-size: 13px; padding: 5px 8px; background: white; border-radius: 5px; box-shadow: 0 0 5px #0000003d; z-index: 999; transform: translate3d(0, -125%, 0); user-select: none;'
 
         input.addEventListener('focus', () => {
           navigator.clipboard.writeText(code)
