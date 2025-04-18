@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         nyaa.si.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.4.0
+// @version      0.4.1
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
 // @match        https://*.nyaa.si/*
@@ -527,7 +527,8 @@
   function searchKW (keyword, cp) {
     const { q: _q } = LSearch
     let _search = Object.entries(Object.assign({}, LSearch, {
-      q: cp && _q ? [_q, keyword].join(' ') : keyword
+      q: cp && _q ? [_q, keyword].join(' ') : keyword,
+      p: '', /** 重置页码 */
     })).reduce((prev, current) => {
       const [key, val] = current
       prev.push(`${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
