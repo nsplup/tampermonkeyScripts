@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Imgur Uploader & History
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Upload images to Imgur and manage upload history.
 // @author       Luke Pan
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
@@ -301,9 +301,9 @@
             margin-top: 10px;
         }
         #imgur-uploader-status {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #555;
+            margin: 10px 0;
+            font-size: 0.8em;
+            color: #949494;
         }
     `);
 
