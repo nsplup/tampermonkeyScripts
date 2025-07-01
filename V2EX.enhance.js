@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.5
+// @version      0.8.6
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -38,25 +38,7 @@
     }
   }
 
-  function handleBlock (url, unblock = false) {
-    return fetch(url)
-    .then(res => res.text())
-    .then(data => {
-      const API = data.match(
-        unblock ?
-          /\/unblock\/\d+\?once=\d+/ :
-          /\/block\/\d+\?once=\d+/
-      )
-
-      if (API) {
-        return fetch(location.origin + API)
-      } else {
-        return Promise.reject()
-      }
-    })
-  }
-
-  /** 一键签到 & 广告移除 */
+  /** 一键签到 */
   if (location.pathname === '/') {
     /** 签到部分 */
     const DAILY = '/mission/daily'
@@ -101,21 +83,8 @@
       if (AUTO_DAILY_BONUS) { setTimeout(() => button.click(), 500) }
     }
 
-    /** 广告部分 */
-    const adEl = $('#pro-campaign-container')
-    const invisible = 'transition: height 0.3s ease-in; height: 0; opacity: 0;'
-    let prev, next
-
-    if (adEl) {
-      prev = adEl.previousElementSibling
-      next = adEl.nextElementSibling
-      adEl.style = invisible
-    }
-    if (prev) {
-      prev.style = invisible
-    } else if (next) {
-      next.style = invisible
-    }
+    /** 移除广告 */
+    hideAd()
   }
 
   /** 主题优化 */
@@ -654,6 +623,43 @@
         el.removeAttribute('onclick')
         el.style = 'font-size: 12px; line-height: 12px; color: #333; text-decoration: none; display: inline-block; padding: 3px 10px; border-radius: 15px; text-shadow: 0 1px 0 #fff; cursor: pointer;'
         el.addEventListener('click', () => { thankTopic(parseInt(id), once.slice(1, -1)) })
+      }
+    })
+
+    /** 移除广告 */
+    hideAd()
+  }
+  function hideAd () {
+    const adEl = $('#pro-campaign-container')
+    const invisible = 'transition: height 0.3s ease-in; height: 0; opacity: 0;'
+    let prev, next
+
+    if (adEl) {
+      prev = adEl.previousElementSibling
+      next = adEl.nextElementSibling
+      adEl.style = invisible
+    }
+    if (prev) {
+      prev.style = invisible
+    } else if (next) {
+      next.style = invisible
+    }
+  }
+
+  function handleBlock (url, unblock = false) {
+    return fetch(url)
+    .then(res => res.text())
+    .then(data => {
+      const API = data.match(
+        unblock ?
+          /\/unblock\/\d+\?once=\d+/ :
+          /\/block\/\d+\?once=\d+/
+      )
+
+      if (API) {
+        return fetch(location.origin + API)
+      } else {
+        return Promise.reject()
       }
     })
   }
