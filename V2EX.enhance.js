@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.4
+// @version      0.8.5
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -56,8 +56,9 @@
     })
   }
 
-  /** 一键签到 */
+  /** 一键签到 & 广告移除 */
   if (location.pathname === '/') {
+    /** 签到部分 */
     const DAILY = '/mission/daily'
     const button = $(`[href="${DAILY}"]`)
 
@@ -98,6 +99,22 @@
 
       /** 自动签到 */
       if (AUTO_DAILY_BONUS) { setTimeout(() => button.click(), 500) }
+    }
+
+    /** 广告部分 */
+    const adEl = $('#pro-campaign-container')
+    const invisible = 'transition: height 0.3s ease-in; height: 0; opacity: 0;'
+    let prev, next
+
+    if (adEl) {
+      prev = adEl.previousElementSibling
+      next = adEl.nextElementSibling
+      adEl.style = invisible
+    }
+    if (prev) {
+      prev.style = invisible
+    } else if (next) {
+      next.style = invisible
     }
   }
 
