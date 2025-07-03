@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.6
+// @version      0.8.7
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
@@ -631,7 +631,7 @@
   }
   function hideAd () {
     const adEl = $('#pro-campaign-container')
-    const invisible = 'transition: height 0.3s ease-in; height: 0; opacity: 0;'
+    const invisible = 'display: none;'
     let prev, next
 
     if (adEl) {
