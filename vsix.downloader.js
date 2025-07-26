@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vsix.downloader
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  微软扩展市场 vsix 下载器
 // @author       Luke Pan
 // @match        https://marketplace.visualstudio.com/items?itemName=*
@@ -43,18 +43,21 @@
     }
   }
   function generateLink ({ version, publisher, name }) {
-    return `/_apis/public/gallery/publisher/${ publisher }/extension/${ name }/${ version }/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`
+    // return `/_apis/public/gallery/publisher/${ publisher }/extension/${ name }/${ version }/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`
+    return `/_apis/public/gallery/publishers/${ publisher }/vsextensions/${ name }/${ version }/vspackage`
   }
   function generateName ({ version, publisher, name }) {
     return `${ publisher }.${ name }-${ version }.vsix`
   }
   function injectButton (info) {
-    const main = document.createElement('span')
+    // const main = document.createElement('span')
+    const main = document.createElement('a')
 
     main.className = 'ux-oneclick-install-button-container'
     main.style = 'margin-left: 10px'
     main.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__0">Download</div></div></div></button>'
-    main.addEventListener('click', handleDownload.bind(null, info))
+    // main.addEventListener('click', handleDownload.bind(null, info))
+    main.href = generateLink(info)
 
     const mParent = $('.ux-oneclick-install-button-container').parentNode
     const installHelpInfo = $('.installHelpInfo')
@@ -71,7 +74,8 @@
       
       const button = document.createElement('a')
       button.innerText = 'Download'
-      button.addEventListener('click', handleDownload.bind(null, newInfo))
+      // button.addEventListener('click', handleDownload.bind(null, newInfo))
+      button.href = generateLink(newInfo)
       columns[1].appendChild(button)
     }
   }
