@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vsix.downloader
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  微软扩展市场 vsix 下载器
 // @author       Luke Pan
 // @match        https://marketplace.visualstudio.com/items?itemName=*
@@ -16,25 +16,33 @@
   const $ = document.querySelector.bind(document)
   const $$ = (selectors, parent = document) => Array.from(parent.querySelectorAll(selectors))
 
-  const isVSCodeMarket = $('.bread-crumb-container .member').innerText === 'Visual Studio Code'
-
-  if (!isVSCodeMarket) { return }
-
   const observer = new MutationObserver(() => {
     try {
+      const isVSCodeMarket = $('.bread-crumb-container .member').innerText === 'Visual Studio Code'
+    
+      if (!isVSCodeMarket) { return }
       const info = getInfo()
 
       injectButton(info)
-      injectHistoryButton(info)
+      let historyBtn = $('#Pivot3-Tab1') || $('#versionHistory')
+      historyBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          injectHistoryButton(info)
+        })
+      })
       observer.disconnect()
-    } catch (e) {}
+    } catch (e) {
+      // console.log(e)
+    }
   })
 
   observer.observe(document.body, { subtree: true, childList: true })
 
   function getInfo () {
-    const uniqueIdentifier = $('#unique-identifier + td').innerText
-    const version = $('#version + td').innerText
+    let uiEl = $('#unique-identifier + td') || $('#Unique_Identifier + td')
+    const uniqueIdentifier = uiEl.innerText
+    let verEl = $('#version + td') || $('#Version + td')
+    const version = verEl.innerText
     const [publisher, name] = uniqueIdentifier.split('.')
     return {
       version,
@@ -55,7 +63,10 @@
 
     main.className = 'ux-oneclick-install-button-container'
     main.style = 'margin-left: 10px'
-    main.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__0">Download</div></div></div></button>'
+    main.innerHTML = $('.ux-oneclick-install-button-container')
+      .innerHTML
+      .replace('id__0', 'id__99')
+      .replace('Install', 'Download')
     // main.addEventListener('click', handleDownload.bind(null, info))
     main.href = generateLink(info)
 
@@ -66,6 +77,8 @@
   }
   function injectHistoryButton (info) {
     const history = $$('.version-history-container-row').slice(1)
+
+    if ($$('.version-history-container-column:nth-child(2) a', history[0]).length > 0) { return }
 
     for (let row of history) {
       const columns = $$('.version-history-container-column', row)
@@ -99,7 +112,7 @@
       const a = document.createElement('a');
       a.href = url;
       a.download = generateName(info);
-      a.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__0">Save</div></div></div></button>'
+      a.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__99">Save</div></div></div></button>'
 
       tip.innerText = 'Fetched'
       mask.appendChild(a);
