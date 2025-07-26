@@ -1,0 +1,118 @@
+// ==UserScript==
+// @name         vsix.downloader
+// @namespace    http://tampermonkey.net/
+// @version      0.0.1
+// @description  微软扩展市场 vsix 下载器
+// @author       Luke Pan
+// @match        https://marketplace.visualstudio.com/items?itemName=*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=visualstudio.com
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+  'use strict';
+
+  const $ = document.querySelector.bind(document)
+  const $$ = (selectors, parent = document) => Array.from(parent.querySelectorAll(selectors))
+
+  const isVSCodeMarket = $('.bread-crumb-container .member').innerText === 'Visual Studio Code'
+
+  if (!isVSCodeMarket) { return }
+
+  const observer = new MutationObserver(() => {
+    try {
+      const info = getInfo()
+
+      injectButton(info)
+      injectHistoryButton(info)
+      observer.disconnect()
+    } catch (e) {}
+  })
+
+  observer.observe(document.body, { subtree: true, childList: true })
+
+  function getInfo () {
+    const uniqueIdentifier = $('#unique-identifier + td').innerText
+    const version = $('#version + td').innerText
+    const [publisher, name] = uniqueIdentifier.split('.')
+    return {
+      version,
+      publisher,
+      name
+    }
+  }
+  function generateLink ({ version, publisher, name }) {
+    return `/_apis/public/gallery/publisher/${ publisher }/extension/${ name }/${ version }/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`
+  }
+  function generateName ({ version, publisher, name }) {
+    return `${ publisher }.${ name }-${ version }.vsix`
+  }
+  function injectButton (info) {
+    const main = document.createElement('span')
+
+    main.className = 'ux-oneclick-install-button-container'
+    main.style = 'margin-left: 10px'
+    main.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__0">Download</div></div></div></button>'
+    main.addEventListener('click', handleDownload.bind(null, info))
+
+    const mParent = $('.ux-oneclick-install-button-container').parentNode
+    const installHelpInfo = $('.installHelpInfo')
+
+    mParent.insertBefore(main, installHelpInfo)
+  }
+  function injectHistoryButton (info) {
+    const history = $$('.version-history-container-row').slice(1)
+
+    for (let row of history) {
+      const columns = $$('.version-history-container-column', row)
+      const version = columns[0].innerText
+      const newInfo = Object.assign({}, info, { version })
+      
+      const button = document.createElement('a')
+      button.innerText = 'Download'
+      button.addEventListener('click', handleDownload.bind(null, newInfo))
+      columns[1].appendChild(button)
+    }
+  }
+  async function handleDownload (info) {
+    const mask = document.createElement('div')
+    const tip = document.createElement('p')
+    tip.innerText = 'Fetching, Please Wait'
+    mask.appendChild(tip)
+    mask.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; display: inline-flex; color: white; font-size: 50px; font-weight: bold; align-items: center; justify-content: center; flex-direction: column;'
+    document.body.appendChild(mask)
+    disablescroll()
+
+    try {
+      const res = await fetch(generateLink(info));
+      if (!res.ok) {
+        alert('Network Error')
+      };
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = generateName(info);
+      a.innerHTML = '<button type="button" class="ms-Button ux-button install ms-Button--default root-39" data-is-focusable="true"><div class="ms-Button-flexContainer flexContainer-40"><div class="ms-Button-textContainer textContainer-41"><div class="ms-Button-label label-43" id="id__0">Save</div></div></div></button>'
+
+      tip.innerText = 'Fetched'
+      mask.appendChild(a);
+      
+      a.addEventListener('click', () => {
+        document.body.removeChild(mask)
+        enablescroll()
+      })
+    } catch (e) {
+      console.error(e);
+      alert('Download Failed');
+    }
+  }
+  function enablescroll () {
+    document.documentElement.style.overflowY = 'scroll' 
+  }
+  function disablescroll () {
+    document.documentElement.style.overflowY = 'hidden' 
+  }
+})();
