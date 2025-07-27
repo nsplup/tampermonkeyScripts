@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         V2EX.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.8.7
+// @version      0.8.8
 // @description  V2EX 功能增强
 // @author       Luke Pan
 // @match        https://*.v2ex.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=v2ex.com
+// @noframes
 // ==/UserScript==
 
 (function() {

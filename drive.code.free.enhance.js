@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         drive.code.free.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.0.5
+// @version      0.0.6
 // @description  drive.code.free 增强
 // @author       Luke Pan
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @noframes
 // ==/UserScript==
 
 (function() {

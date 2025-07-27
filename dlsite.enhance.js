@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         dlsite.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  dlsite 功能增强
 // @author       Luke Pan
 // @match        https://*.dlsite.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=dlsite.com
+// @noframes
 // ==/UserScript==
 
 (function() {

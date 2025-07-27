@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         auto.click
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3
+// @version      0.0.4
 // @description  自动点击
 // @author       Luke Pan
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @noframes
 // ==/UserScript==
 
 (function() {

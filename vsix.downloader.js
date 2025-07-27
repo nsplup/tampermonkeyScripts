@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         vsix.downloader
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3
+// @version      0.0.4
 // @description  微软扩展市场 vsix 下载器
 // @author       Luke Pan
 // @match        https://marketplace.visualstudio.com/items?itemName=*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=visualstudio.com
 // @grant        none
+// @noframes
 // @run-at       document-end
 // ==/UserScript==
 

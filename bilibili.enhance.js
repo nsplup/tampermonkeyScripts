@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         bilibili.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.0.11
+// @version      0.0.12
 // @description  bilibili 功能增强
 // @author       Luke Pan
 // @match        https://*.bilibili.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
+// @noframes
 // ==/UserScript==
 
 (function() {

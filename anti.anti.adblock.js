@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         anti.anti.adblock
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  反【反广告屏蔽】
 // @author       Luke Pan
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @noframes
 // ==/UserScript==
 
 (function() {

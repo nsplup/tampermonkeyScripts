@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         drive.code.free
 // @namespace    http://tampermonkey.net/
-// @version      0.5.6
+// @version      0.5.7
 // @description  网盘提取码自填充
 // @author       Luke Pan
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @noframes
 // ==/UserScript==
 
 (function() {

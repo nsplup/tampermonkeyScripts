@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         auto.decode.base64
 // @namespace    http://tampermonkey.net/
-// @version      0.0.11
+// @version      0.0.12
 // @description  BASE64 解码辅助
 // @author       Luke Pan
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @noframes
 // ==/UserScript==
 
 (function() {

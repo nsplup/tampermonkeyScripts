@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         qidian.score
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  起点推荐指数计算
 // @author       Luke Pan
 // @match        https://www.qidian.com/book/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=qidian.com
+// @noframes
 // ==/UserScript==
 
 (function() {
