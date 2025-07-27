@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Imgur Uploader & History
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Upload images to Imgur and manage upload history.
 // @author       Luke Pan
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
-// @match        *://*/*
+// @match        https://www.v2ex.com/t/*
+// @connect      api.imgur.com
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
