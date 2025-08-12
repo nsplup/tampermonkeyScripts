@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vsix.downloader
 // @namespace    http://tampermonkey.net/
-// @version      0.0.4
+// @version      0.0.5
 // @description  微软扩展市场 vsix 下载器
 // @author       Luke Pan
 // @match        https://marketplace.visualstudio.com/items?itemName=*
@@ -17,36 +17,50 @@
   const $ = document.querySelector.bind(document)
   const $$ = (selectors, parent = document) => Array.from(parent.querySelectorAll(selectors))
 
-  const observer = new MutationObserver(() => {
-    try {
-      const isVSCodeMarket = $('.bread-crumb-container .member').innerText === 'Visual Studio Code'
+  // const observer = new MutationObserver(() => {
+  //   try {
+  //     const isVSCodeMarket = $('.bread-crumb-container .member').innerText === 'Visual Studio Code'
     
-      if (!isVSCodeMarket) { return }
-      const info = getInfo()
+  //     if (!isVSCodeMarket) { return }
+  //     const info = getInfo()
 
-      injectButton(info)
-      let historyBtn = $('#Pivot3-Tab1') || $('#versionHistory')
-      historyBtn.addEventListener('click', () => {
-        setTimeout(() => {
-          injectHistoryButton(info)
-        })
+  //     injectButton(info)
+  //     let historyBtn = $('#Pivot3-Tab1') || $('#versionHistory')
+  //     historyBtn.addEventListener('click', () => {
+  //       setTimeout(() => {
+  //         injectHistoryButton(info)
+  //       })
+  //     })
+  //     observer.disconnect()
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // })
+
+  // observer.observe(document.body, { subtree: true, childList: true })
+
+  const info = getInfo()
+  if (info === null) {
+    console.log('[VSIX.Downloader] Can not get Package infomation')
+  } else {
+    let historyBtn = $('#Pivot3-Tab1') || $('#versionHistory')
+    historyBtn.addEventListener('click', () => {
+      setTimeout(() => {
+        injectHistoryButton(info)
       })
-      observer.disconnect()
-    } catch (e) {
-      // console.log(e)
-    }
-  })
-
-  observer.observe(document.body, { subtree: true, childList: true })
+    })
+  }
 
   function getInfo () {
-    let uiEl = $('#unique-identifier + td') || $('#Unique_Identifier + td')
-    const uniqueIdentifier = uiEl.innerText
-    let verEl = $('#version + td') || $('#Version + td')
-    const version = verEl.innerText
-    const [publisher, name] = uniqueIdentifier.split('.')
+    let itemName = window.location.toString().match(/itemName=([^=&]+)/gm)
+    if (itemName.length > 0) {
+      itemName = itemName[0].slice(9)
+    } else {
+      return null
+    }
+    const [publisher, name] = itemName.split('.')
     return {
-      version,
+      version: null,
       publisher,
       name
     }
