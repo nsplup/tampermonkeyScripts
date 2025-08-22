@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         auto.redirector
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  自动重定向
 // @author       Luke Pan
 // @match        */*
@@ -20,6 +20,10 @@
     [
       '*pornet.org/',
       'https://pornet.org/category/newhalf/'
+    ],
+    [
+      '*javbooks.com/',
+      'https://javbooks.com/serchinfo_uncensored/nouse/topicsall_1.htm'
     ]
   ]
 
