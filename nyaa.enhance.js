@@ -1,9 +1,10 @@
 // ==UserScript==
-// @name         nyaa.si.enhance
+// @name         nyaa.enhance
 // @namespace    http://tampermonkey.net/
-// @version      0.4.2
+// @version      0.4.3
 // @description  nyaa.si 功能增强
 // @author       Luke Pan
+// @match        https://*.nyaa.land/*
 // @match        https://*.nyaa.si/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=nyaa.si
 // @grant        GM_setValue
