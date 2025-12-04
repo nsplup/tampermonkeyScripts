@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         auto.redirector
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3
+// @version      0.0.4
 // @description  自动重定向
 // @author       Luke Pan
 // @match        */*
@@ -24,6 +24,10 @@
     [
       '*javbooks.com/',
       'https://javbooks.com/serchinfo_uncensored/nouse/topicsall_1.htm'
+    ],
+    [
+      '*jav.guru/',
+      'https://jav.guru/category/jav-uncensored/?orderby=rdate&order=DESC'
     ]
   ]
 
